@@ -16,7 +16,7 @@ import java.time.*
 import java.time.format.*
 import java.util.*
 
-class SelectDateTimeVM(private val application: Application) : AndroidViewModel(application) {
+class SelectDateTimeVM(application: Application) : AndroidViewModel(application) {
   private val TAG = "SelectDateTimeVM"
   private var scheduleId = 0
   private lateinit var packageName: String
