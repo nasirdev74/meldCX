@@ -3,12 +3,15 @@ package com.meldcx.modules.select_app
 import android.app.Application
 import android.content.pm.PackageManager
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import javax.inject.Inject
 
-class SelectAppVM(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SelectAppVM @Inject constructor(application: Application) : ViewModel() {
   private val TAG = "SelectAppVM"
   val apps = MutableStateFlow(emptyList<String>())
 

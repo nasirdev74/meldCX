@@ -4,17 +4,20 @@ import com.meldcx.dao.ScheduleDao
 import com.meldcx.entity.Schedule
 import kotlinx.coroutines.flow.*
 import java.time.*
+import javax.inject.*
 
-class ScheduleRepository(private val scheduleDao: ScheduleDao) {
-  suspend fun insert(schedule: Schedule) {
+class ScheduleRepository @Inject constructor(
+  private val scheduleDao: ScheduleDao
+) {
+  private fun insert(schedule: Schedule) {
     scheduleDao.insert(schedule)
   }
 
-  suspend fun update(schedule: Schedule) {
+  private fun update(schedule: Schedule) {
     scheduleDao.update(schedule)
   }
 
-  suspend fun save(schedule: Schedule): Schedule? {
+  fun save(schedule: Schedule): Schedule? {
     val existingSchedule = getById(schedule.id)
     if (existingSchedule == null) {
       val requestCode = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC).toInt()
@@ -33,7 +36,7 @@ class ScheduleRepository(private val scheduleDao: ScheduleDao) {
     return getSchedulesByPackageAndTime(schedule.packageName, schedule.scheduledTime).lastOrNull()
   }
 
-  suspend fun markExecuted(id: Long): Schedule? {
+  fun markExecuted(id: Long): Schedule? {
     val schedule = getById(id)
     if (schedule != null) {
       schedule.isExecuted = true
@@ -42,11 +45,11 @@ class ScheduleRepository(private val scheduleDao: ScheduleDao) {
     return null
   }
 
-  suspend fun delete(schedule: Schedule) {
+  fun delete(schedule: Schedule) {
     scheduleDao.delete(schedule.id)
   }
 
-  suspend fun getAll(): List<Schedule> {
+  fun getAll(): List<Schedule> {
     return scheduleDao.getAll()
   }
 
@@ -54,7 +57,7 @@ class ScheduleRepository(private val scheduleDao: ScheduleDao) {
     return scheduleDao.getAllSchedulesFlow()
   }
 
-  suspend fun getById(id: Long): Schedule? {
+  fun getById(id: Long): Schedule? {
     return scheduleDao.getById(id)
   }
 
@@ -65,11 +68,11 @@ class ScheduleRepository(private val scheduleDao: ScheduleDao) {
     return scheduleDao.getSchedulesByPackageAndTime(packageName, scheduledTime)
   }
 
-  suspend fun getScheduledSchedules(): List<Schedule> {
+  fun getScheduledSchedules(): List<Schedule> {
     return scheduleDao.getScheduledSchedules()
   }
 
-  suspend fun getExecutedSchedules(): List<Schedule> {
+  fun getExecutedSchedules(): List<Schedule> {
     return scheduleDao.getExecutedSchedules()
   }
 }

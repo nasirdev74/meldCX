@@ -5,9 +5,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.meldcx.modules.schedules.SchedulesView
 import com.meldcx.modules.select_app.SelectAppView
@@ -38,7 +36,7 @@ fun AppPages() {
       SelectAppView(navController = navController)
     }
     composable(AppRoutes.SelectDateTime.route) { backStackEntry ->
-      val packageName = backStackEntry.arguments?.getString("packageName") ?: "no package name found"
+      val packageName = backStackEntry.arguments?.getString("packageName") ?: ""
       val scheduleId = backStackEntry.arguments?.getString("scheduleId")?.toIntOrNull()
       SelectDateTimeView(
         navController = navController,

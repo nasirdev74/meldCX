@@ -1,7 +1,8 @@
 plugins {
   id("com.android.application")
   id("org.jetbrains.kotlin.android")
-  id("com.google.devtools.ksp")
+  id("com.google.dagger.hilt.android")
+  id("kotlin-kapt")
 }
 
 android {
@@ -49,7 +50,7 @@ android {
     compose = true
   }
   composeOptions {
-    kotlinCompilerExtensionVersion = "1.5.1"
+    kotlinCompilerExtensionVersion = "1.5.3"
   }
   packaging {
     resources {
@@ -58,9 +59,13 @@ android {
   }
 }
 
+kapt {
+  correctErrorTypes = true
+}
+
 dependencies {
-  implementation("androidx.core:core-ktx:1.10.1")
-  implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+  implementation("androidx.core:core-ktx:1.12.0")
+  implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
   implementation("androidx.activity:activity-compose:1.7.2")
   implementation(platform("androidx.compose:compose-bom:2023.03.00"))
   implementation("androidx.compose.ui:ui")
@@ -76,16 +81,22 @@ dependencies {
   debugImplementation("androidx.compose.ui:ui-test-manifest")
 
   // navigation
-  val nav_version = "2.7.0"
+  val nav_version = "2.7.2"
   implementation("androidx.navigation:navigation-compose:$nav_version")
   implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
 
-//    room
+  // room
   val room_version = "2.5.2"
   implementation("androidx.room:room-runtime:$room_version")
   annotationProcessor("androidx.room:room-compiler:$room_version")
-  ksp("androidx.room:room-compiler:$room_version")
+  //noinspection KaptUsageInsteadOfKsp
+  kapt("androidx.room:room-compiler:$room_version")
   implementation("androidx.room:room-ktx:$room_version")
 
   implementation("com.google.accompanist:accompanist-drawablepainter:0.30.1")
+
+  val hilt_version = "2.48"
+  implementation("com.google.dagger:hilt-android:$hilt_version")
+  kapt("com.google.dagger:hilt-compiler:$hilt_version")
+  implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 }

@@ -8,17 +8,24 @@ import android.provider.*
 import android.util.*
 import androidx.lifecycle.*
 import androidx.navigation.*
-import com.meldcx.database.*
 import com.meldcx.entity.*
 import com.meldcx.repo.*
 import com.meldcx.routes.*
 import com.meldcx.utils.*
 import kotlinx.coroutines.*
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.*
+import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
-class SchedulesVM(private val application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SchedulesVM @Inject constructor(
+  private val scheduleRepository: ScheduleRepository,
+  private val application: Application,
+) : ViewModel() {
   val TAG = "SchedulesVM"
-  private val scheduleRepository = ScheduleRepository(ScheduleDatabase.getInstance(application).scheduleDao())
-  val schedules = ScheduleRepository(ScheduleDatabase.getInstance(application).scheduleDao()).getAllSchedulesFlow()
+
+  var schedules = MutableStateFlow<List<Schedule>>(emptyList())
 
   fun createSchedule(context: Context, navController: NavController) {
     if (isSystemAlertWindowGranted() && isIgnoringBatteryOptimizations()) {
@@ -34,7 +41,7 @@ class SchedulesVM(private val application: Application) : AndroidViewModel(appli
     builder.setMessage("Are you sure you want to delete?")
     builder.setPositiveButton("Delete") { dialog, _ ->
       dialog.dismiss()
-      viewModelScope.launch {
+      viewModelScope.launch(Dispatchers.IO) {
         scheduleRepository.delete(schedule)
         AlarmHelper.cancel(schedule, context)
       }
@@ -118,5 +125,13 @@ class SchedulesVM(private val application: Application) : AndroidViewModel(appli
 
   private fun isSystemAlertWindowGranted(): Boolean {
     return Settings.canDrawOverlays(application.applicationContext)
+  }
+
+  init {
+    viewModelScope.launch(Dispatchers.IO) {
+      scheduleRepository.getAllSchedulesFlow().collect {
+        schedules.value = it
+      }
+    }
   }
 }

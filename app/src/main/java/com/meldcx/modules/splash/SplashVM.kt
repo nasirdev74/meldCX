@@ -1,14 +1,16 @@
 package com.meldcx.modules.splash
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.meldcx.routes.AppRoutes
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.*
 
-class SplashVM(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SplashVM @Inject constructor() : ViewModel() {
   fun init(navController: NavController) {
     viewModelScope.launch {
       delay(500)

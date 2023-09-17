@@ -14,13 +14,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.*
 import androidx.navigation.NavController
 import com.meldcx.ui.theme.primaryColor
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun SplashView(navController: NavController, vm: SplashVM = viewModel()) {
+fun SplashView(
+  navController: NavController,
+  vm: SplashVM = hiltViewModel(),
+) {
   LaunchedEffect(key1 = "splash") {
     vm.init(navController)
   }

@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.*
+import androidx.hilt.navigation.compose.*
 import androidx.lifecycle.viewmodel.compose.*
 import androidx.navigation.*
 import com.meldcx.modules.select_date_time.widgets.*
@@ -24,7 +25,7 @@ fun SelectDateTimeView(
   packageName: String,
   scheduleId: Int,
   navController: NavController,
-  vm: SelectDateTimeVM = viewModel()
+  vm: SelectDateTimeVM = hiltViewModel()
 ) {
   val context = LocalContext.current
   val selectedDate = vm.selectedDate.collectAsState().value

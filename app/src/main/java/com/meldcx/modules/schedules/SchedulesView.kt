@@ -7,13 +7,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.platform.*
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.meldcx.entity.*
 import com.meldcx.modules.schedules.widgets.*
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun SchedulesView(navController: NavController, vm: SchedulesVM = viewModel()) {
+fun SchedulesView(navController: NavController, vm: SchedulesVM = hiltViewModel()) {
   val context = LocalContext.current
   val schedules = vm.schedules.collectAsState(emptyList()).value
   LaunchedEffect(key1 = "SchedulesView") {

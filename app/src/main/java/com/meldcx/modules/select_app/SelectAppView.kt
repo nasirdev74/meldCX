@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.*
 import androidx.navigation.NavController
 import com.meldcx.modules.select_app.widgets.BuildAddApp
 import com.meldcx.ui.theme.primaryColor
@@ -17,12 +17,15 @@ import com.meldcx.widgets.*
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun SelectAppView(navController: NavController, vm: SelectAppVM = viewModel()) {
+fun SelectAppView(
+  navController: NavController,
+  vm: SelectAppVM = hiltViewModel()
+) {
   val packageManager = LocalContext.current.packageManager
   val apps = vm.apps.collectAsState().value
-  Scaffold {
+  Scaffold { paddingValues ->
     Box(
-      modifier = Modifier.padding(it)
+      modifier = Modifier.padding(paddingValues)
     ) {
       Column(
         modifier = Modifier
