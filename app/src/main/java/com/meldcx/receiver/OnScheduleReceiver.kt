@@ -21,13 +21,14 @@ class OnScheduleReceiver : BroadcastReceiver() {
         val scheduleId = intent?.getLongExtra("schedule_id", 0) ?: 0
         Log.i(TAG, "package name: $packageName")
         Log.i(TAG, "schedule id: $scheduleId")
+
         if (!packageName.isNullOrEmpty()) {
           val pm = context.packageManager
           val launchIntent = pm?.getLaunchIntentForPackage(packageName)
           launchIntent?.let {
             context.startActivity(it)
             Log.i(TAG, "application started: $packageName")
-            markExecuted(context, scheduleId)
+            markExecuted(scheduleId)
           }
         }
       }
@@ -37,13 +38,11 @@ class OnScheduleReceiver : BroadcastReceiver() {
   }
 
   @OptIn(DelicateCoroutinesApi::class)
-  private fun markExecuted(context: Context?, scheduleId: Long) {
+  private fun markExecuted(scheduleId: Long) {
     try {
-      if (scheduleId.toInt() != 0 && context != null) {
-        GlobalScope.launch {
-          val result = scheduleRepository.markExecuted(scheduleId)
-          Log.i(TAG, "scheduleRepository.markExecuted: $result")
-        }
+      GlobalScope.launch {
+        val result = scheduleRepository.markExecuted(scheduleId)
+        Log.i(TAG, "scheduleRepository.markExecuted: $result")
       }
     } catch (e: Exception) {
       Log.e(TAG, e.message ?: e.toString())

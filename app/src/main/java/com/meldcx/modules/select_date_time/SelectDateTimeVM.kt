@@ -5,24 +5,26 @@ import android.content.*
 import android.util.*
 import androidx.lifecycle.*
 import androidx.navigation.*
-import com.meldcx.database.*
 import com.meldcx.entity.*
 import com.meldcx.repo.*
 import com.meldcx.routes.*
 import com.meldcx.utils.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.time.*
 import java.time.format.*
 import java.util.*
+import javax.inject.Inject
 
-class SelectDateTimeVM(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SelectDateTimeVM @Inject constructor(
+  private val scheduleRepository: ScheduleRepository
+) : ViewModel() {
   private val TAG = "SelectDateTimeVM"
   private var scheduleId = 0
   private lateinit var packageName: String
   private lateinit var navController: NavController
-  private val scheduleRepository =
-    ScheduleRepository(ScheduleDatabase.getInstance(application).scheduleDao())
 
   val selectedDate = MutableStateFlow<LocalDate?>(null)
   val selectedTime = MutableStateFlow<LocalTime?>(null)
@@ -46,7 +48,7 @@ class SelectDateTimeVM(application: Application) : AndroidViewModel(application)
   fun selectTime(context: Context) {
     val timerPicker = TimePickerDialog(
       context,
-      { _, h, m -> selectedTime.value = LocalTime.of(h, m) },
+      { _, h, m -> selectedTime.value = LocalTime.of(h, m, 0) },
       LocalTime.now().hour,
       LocalTime.now().minute,
       false
@@ -56,18 +58,20 @@ class SelectDateTimeVM(application: Application) : AndroidViewModel(application)
 
   fun confirm(context: Context) {
     if (isSelectedDateTimeValid(context)) {
-      val schedule = Schedule(
-        id = scheduleId.toLong(),
-        packageName = packageName,
-        scheduledTime = getSelectedDateTime()?.toEpochSecond(ZoneOffset.UTC) ?: 0
-      )
       viewModelScope.launch(Dispatchers.IO) {
-        val result = scheduleRepository.save(schedule)
-        Log.i(TAG, "save result: $result")
-        if (result != null) {
-          viewModelScope.launch(Dispatchers.Main) {
-            AlarmHelper.update(result, getSelectedDateTimeInMillis(), context)
-            showSucceedDialog(context)
+        if (!checkTimeConflicts(context)) {
+          val schedule = Schedule(
+            id = scheduleId.toLong(),
+            packageName = packageName,
+            scheduledTime = getSelectedDateTime()?.toEpochSecond(ZoneOffset.UTC) ?: 0
+          )
+          val result = scheduleRepository.save(schedule)
+          Log.i(TAG, "save result: $result")
+          if (result != null) {
+            viewModelScope.launch(Dispatchers.Main) {
+              AlarmHelper.update(result, getSelectedDateTimeInMillis(), context)
+              showSucceedDialog(context)
+            }
           }
         }
       }
@@ -84,7 +88,7 @@ class SelectDateTimeVM(application: Application) : AndroidViewModel(application)
   private fun checkScheduleId() {
     try {
       if (scheduleId != 0) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
           val existingSchedule = scheduleRepository.getById(scheduleId.toLong())
           if (existingSchedule != null) {
             val dateTime = LocalDateTime.ofInstant(
@@ -147,6 +151,33 @@ class SelectDateTimeVM(application: Application) : AndroidViewModel(application)
     return isValid
   }
 
+  private fun checkTimeConflicts(context: Context): Boolean {
+    var flag = false
+    val allScheduled = scheduleRepository.getScheduledSchedules()
+    val selectedDateTime = getSelectedDateTime()?.toEpochSecond(ZoneOffset.UTC) ?: 0
+    allScheduled.forEach {
+      if (it.scheduledTime == selectedDateTime) {
+        Log.i(TAG, "time conflicts found with $it")
+        flag = true
+        return@forEach
+      }
+    }
+    if (flag) {
+      viewModelScope.launch(Dispatchers.Main) {
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Time Conflict")
+        builder.setMessage("Selected date-time conflicts with other schedule\nPlease try with another date-time")
+        builder.setPositiveButton("Try Again") { dialog, _ ->
+          dialog.dismiss()
+        }
+        builder.show()
+      }
+    } else {
+      Log.d(TAG, "no time conflicts found")
+    }
+    return flag
+  }
+
   private fun getSelectedDateTime(): LocalDateTime? {
     if (selectedDate.value != null && selectedTime.value != null) {
       val y = selectedDate.value?.year
@@ -155,7 +186,7 @@ class SelectDateTimeVM(application: Application) : AndroidViewModel(application)
       val hh = selectedTime.value?.hour
       val mm = selectedTime.value?.minute
       if (y != null && m != null && d != null && hh != null && mm != null) {
-        return LocalDateTime.of(y, m, d, hh, mm)
+        return LocalDateTime.of(y, m, d, hh, mm, 0, 0)
       }
     }
     return null
@@ -168,7 +199,7 @@ class SelectDateTimeVM(application: Application) : AndroidViewModel(application)
     val d = selectedDate.value?.dayOfMonth ?: 0
     val hh = selectedTime.value?.hour ?: 0
     val mm = selectedTime.value?.minute ?: 0
-    calendar.set(y, m - 1, d, hh, mm)
+    calendar.set(y, m - 1, d, hh, mm, 0)
     return calendar.timeInMillis
   }
 }
